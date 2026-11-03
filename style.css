@@ -1,0 +1,90 @@
+/* 全体：上の余白を詰める */
+body {
+  font-family: -apple-system, system-ui, sans-serif;
+  margin: 0;
+  padding: 12px;          /* 16px → 12px で上に詰める */
+}
+
+/* 先頭パネルをさらに上に寄せる */
+.panelTop { margin-top: 0; }
+
+.panel { border: 1px solid #ddd; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.center { justify-content: center; }
+
+.btn { padding: 10px 12px; border-radius: 10px; border: 1px solid #222; background: #222; color: #fff; cursor: pointer; }
+.btn.ghost { background: transparent; color: #222; }
+
+/* A：濃い緑 */
+.btn.good { background: #0a7; border-color: #0a7; color: #fff; }
+/* B：Aより薄い緑 */
+.btn.ok { background: #6fcf97; border-color: #6fcf97; color: #0b2a16; }
+/* C：Bよりさらに薄い緑 */
+.btn.bad { background: #bfe8c9; border-color: #bfe8c9; color: #0b2a16; }
+
+input { padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; flex: 1; min-width: 220px; }
+.stats { font-size: 13px; opacity: 0.85; }
+
+/* チップ */
+.chip { display:flex; align-items:center; gap:6px; padding:8px 10px; border:1px solid #ddd; border-radius:999px; }
+.chip input { min-width: auto; }
+
+/* カード全体 */
+.card { border: 2px solid #222; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; }
+
+/* 上部メタ：右上のtag/gradeを少し大きく */
+.meta { display:flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; opacity: 0.75; }
+.metaRight { display:flex; gap:10px; align-items:center; justify-content:flex-end; font-size: 14px; opacity: 0.95; }
+.grade { padding: 3px 10px; border: 1px solid #ddd; border-radius: 999px; font-weight: 700; font-size: 14px; }
+
+/* 内容エリア：高さを確保 */
+.cardBody {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* ✅ 問題の文字サイズを解答と同じにする（18px） */
+.face {
+  font-size: 18px;        /* 28px → 18px */
+  line-height: 1.4;
+  margin: 12px 0 10px;
+  text-align: left;
+  white-space: pre-wrap;
+
+  background: #fff6df;          /* 薄いクリーム色 */
+  border: 1px solid #eadfbe;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.back {
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 0 0 18px;
+  text-align: left;
+  opacity: 0.9;
+  white-space: pre-wrap;
+}
+
+/* レイアウトを崩さずに隠す（スペースは保持） */
+.invisible { visibility: hidden; }
+
+/* 操作部 */
+.controls { margin-top: 10px; padding-top: 10px; }
+
+/* ✅ ナビ列とA/B/C列の間を少し開ける */
+.gradeRow { margin-top: 12px; }   /* お好みで 8〜20px に調整 */
+
+/* 念のため：display:none 用（基本使わない） */
+.hidden { display: none; }
+
+/* コメント：操作ボタンはカード右下、本文は解答を開いた時だけ表示 */
+.commentButtonRow { justify-content: flex-end; margin-top: 12px; }
+.commentDisplay { white-space: pre-wrap; overflow-wrap: anywhere; background: #eef6ff; border: 1px solid #cbdff4; border-radius: 10px; padding: 12px; font-size: 16px; line-height: 1.5; margin: 0 0 12px; }
+.commentDialog { width: min(92vw, 560px); box-sizing: border-box; border: 1px solid #aaa; border-radius: 14px; padding: 20px; }
+.commentDialog::backdrop { background: rgba(0,0,0,.45); }
+.commentDialog h3 { margin: 0 0 12px; }
+.commentDialog textarea { box-sizing: border-box; width: 100%; font: inherit; padding: 10px; border: 1px solid #aaa; border-radius: 8px; resize: vertical; }
+.commentDialogActions { justify-content: flex-end; margin-top: 12px; }

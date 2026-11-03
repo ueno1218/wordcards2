@@ -1,0 +1,9 @@
+// manifest.webmanifest
+{
+  "name": "単語カード",
+  "short_name": "単語カード",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff"
+}

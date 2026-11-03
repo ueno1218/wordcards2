@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>単語カード</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#ffffff">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <section class="panel panelTop">
+      <div class="row">
+        <label class="btn">
+          ファイル読み込み（CSV/XLSX）
+          <input id="csvFile" type="file"
+                 accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+                 hidden>
+        </label>
+
+        <button id="btnShuffle" class="btn">シャッフル</button>
+        <button id="btnResetStats" class="btn ghost">学習履歴リセット</button>
+      </div>
+
+      <div class="row">
+        <input id="tagFilter" list="tagOptions" placeholder="タグで絞り込み（空で全件）" />
+        <datalist id="tagOptions"></datalist>
+
+        <button id="btnApplyFilter" class="btn">適用</button>
+
+        <label class="chip"><input type="checkbox" id="fA" checked> A</label>
+        <label class="chip"><input type="checkbox" id="fB" checked> B</label>
+        <label class="chip"><input type="checkbox" id="fC" checked> C</label>
+
+        <button id="btnApplyGrade" class="btn">評価で出題</button>
+      </div>
+    </section>
+
+    <section id="card" class="card" aria-live="polite">
+      <div class="meta">
+        <span id="counter">0 / 0</span>
+        <span class="metaRight">
+          <span id="tagLabel"></span>
+          <span id="gradeLabel" class="grade"></span>
+        </span>
+      </div>
+
+      <!-- 内容エリア（高さ確保＋左詰め） -->
+      <div class="cardBody">
+        <div id="face" class="face">CSV/XLSXを読み込んでください</div>
+        <div id="back" class="back invisible"></div>
+        <div id="commentDisplay" class="commentDisplay hidden"></div>
+      </div>
+
+      <!-- 操作エリア（常に下部に固定） -->
+      <div class="controls">
+        <div class="row center navRow">
+          <button id="btnFlip" class="btn">裏を見る</button>
+          <button id="btnPrev" class="btn ghost">前へ</button>
+          <button id="btnNext" class="btn">次へ</button>
+        </div>
+
+        <div class="row center gradeRow">
+          <button id="btnA" class="btn good">A 楽に正解</button>
+          <button id="btnB" class="btn ok">B なんとか正解</button>
+          <button id="btnC" class="btn bad">C 全くダメ</button>
+        </div>
+        <div class="row commentButtonRow">
+          <button id="btnComment" class="btn ghost" type="button">コメント</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="row">
+		<label class="btn ghost">学習履歴Excelから読み込み<input id="historyFile" type="file" accept=".xlsx,.csv" hidden></label>
+<button id="btnExport" class="btn">学習履歴Excelに書き出し</button>
+      </div>
+      <div id="stats" class="stats"></div><div id="historyStatus" class="stats" aria-live="polite">学習履歴Excel：未読み込み</div>
+    </section>
+  </main>
+
+  <dialog id="commentDialog" class="commentDialog" aria-labelledby="commentDialogTitle">
+    <h3 id="commentDialogTitle">この問題のコメント</h3>
+    <textarea id="commentText" rows="7" placeholder="気づいたことや覚えたいポイントを入力"></textarea>
+    <div class="row commentDialogActions">
+      <button id="btnCancelComment" class="btn ghost" type="button">キャンセル</button>
+      <button id="btnSaveComment" class="btn" type="button">保存</button>
+    </div>
+  </dialog>
+  <!-- SheetJS（XLSX読み込み用） -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <script src="app.js"></script>
+</body>
+</html>
