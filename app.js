@@ -393,14 +393,42 @@ function buildHistoryWorkbook() {
   return wb;
 }
 
-function exportHistory(manual = true) {
+// 手動操作時はiPhoneの共有メニューから「ファイルに保存」を選べるようにする。
+// 無操作時は共有メニューを出せないため、従来のダウンロードを試行する。
+async function exportHistory(manual = true) {
   if (!allCards.length) {
     if (manual) alert("先に問題ファイルを読み込んでください。");
     return false;
   }
   try {
     const filename = historyFilename();
-    XLSX.writeFile(buildHistoryWorkbook(), filename);
+    const workbook = buildHistoryWorkbook();
+
+    if (manual && typeof navigator.share === "function" && typeof File !== "undefined") {
+      const bytes = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const file = new File([bytes], filename, {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: filename });
+          changedSinceExport = false;
+          saveStateNow();
+          if (historyStatus) historyStatus.textContent = `共有メニューに送信：${filename}（「ファイルに保存」を選択してください）`;
+          return true;
+        } catch (e) {
+          // ユーザーが共有メニューを閉じた場合は、勝手にダウンロードしない。
+          if (e?.name === "AbortError") {
+            if (historyStatus) historyStatus.textContent = "学習履歴の共有をキャンセルしました";
+            return false;
+          }
+          // 権限・ブラウザ制限などで共有に失敗した場合のみ通常ダウンロードに戻す。
+          console.warn("ファイル共有が利用できないためダウンロードに切り替えます", e);
+        }
+      }
+    }
+
+    XLSX.writeFile(workbook, filename);
     changedSinceExport = false;
     saveStateNow();
     if (historyStatus) historyStatus.textContent = `書き出しを開始：${filename}`;
@@ -412,7 +440,7 @@ function exportHistory(manual = true) {
   }
 }
 
-btnExport.addEventListener("click", () => exportHistory(true));
+btnExport.addEventListener("click", () => { void exportHistory(true); });
 
 historyInput.addEventListener("change", async (e) => {
   const file = e.target.files?.[0];
