@@ -57,6 +57,14 @@ const btnExport = el("btnExport");
 const historyInput = el("historyFile");
 const historyStatus = el("historyStatus");
 const btnComment = el("btnComment");
+const btnSearch = el("btnSearch");
+const searchDialog = el("searchDialog");
+const searchForm = el("searchForm");
+const searchText = el("searchText");
+const btnClearSearch = el("btnClearSearch");
+const btnCancelSearch = el("btnCancelSearch");
+let activeSearch = "";
+let beforeSearch = null; // 検索前の出題順・位置を保持
 const commentDialog = el("commentDialog");
 const commentText = el("commentText");
 const btnSaveComment = el("btnSaveComment");
@@ -134,6 +142,9 @@ async function parseXlsxWithHeaders(file) {
 
 // ====== CSV/XLSX 共通の取り込み処理 ======
 function applyLoadedRows(headers, rows) {
+  activeSearch = "";
+  beforeSearch = null;
+  searchText.value = "";
   if (!headers.includes("id") || !headers.includes("front") || !headers.includes("back")) {
     throw new Error("問題ファイルには id / front / back 列が必要です。");
   }
@@ -229,6 +240,9 @@ function readGradeFilter() {
 }
 
 function applyFilterAndStart() {
+  // タグ・評価で出題し直したときは検索モードを終了する。
+  activeSearch = "";
+  beforeSearch = null;
   const t = (tagFilterInput.value || "").trim();
 
   let base = t ? allCards.filter(c => c.tag === t) : [...allCards];
@@ -243,6 +257,74 @@ function applyFilterAndStart() {
 
   deck.length === 0 ? renderEmpty(t) : render();
 }
+
+// ====== 問題文・回答文の全文検索（部分一致） ======
+function findMatchingCards(query) {
+  const needle = query.toLocaleLowerCase();
+  return allCards.filter(c =>
+    c.front.toLocaleLowerCase().includes(needle) ||
+    c.back.toLocaleLowerCase().includes(needle)
+  );
+}
+
+function startSearch(query) {
+  const term = query.trim();
+  if (!term) {
+    alert("検索文字列を入力してください。");
+    return;
+  }
+  const matches = findMatchingCards(term);
+  if (!matches.length) {
+    alert(`「${term}」に一致する問題はありません。`);
+    return;
+  }
+  // 連続検索でも最初の通常出題状態を保持する。
+  if (!activeSearch) beforeSearch = { deck: [...deck], idx, showBack };
+  activeSearch = term;
+  deck = matches;
+  idx = 0;
+  showBack = false;
+  searchDialog.close();
+  render();
+  scheduleSave();
+}
+
+function clearSearch() {
+  if (!activeSearch) {
+    searchDialog.close();
+    return;
+  }
+  activeSearch = "";
+  searchText.value = "";
+  if (beforeSearch) {
+    deck = beforeSearch.deck;
+    idx = beforeSearch.idx;
+    showBack = beforeSearch.showBack;
+  } else {
+    // 再起動後など、元のデッキがない場合は通常フィルタへ戻す。
+    applyFilterAndStart();
+  }
+  beforeSearch = null;
+  searchDialog.close();
+  deck.length ? render() : renderEmpty((tagFilterInput.value || "").trim());
+  scheduleSave();
+}
+
+btnSearch.addEventListener("click", () => {
+  if (!allCards.length) {
+    alert("先に問題ファイルを読み込んでください。");
+    return;
+  }
+  searchText.value = activeSearch;
+  searchDialog.showModal();
+  searchText.focus();
+});
+btnCancelSearch.addEventListener("click", () => searchDialog.close());
+btnClearSearch.addEventListener("click", clearSearch);
+searchForm.addEventListener("submit", e => {
+  e.preventDefault();
+  startSearch(searchText.value);
+});
 
 // ====== カード操作 ======
 btnFlip.addEventListener("click", () => {
@@ -575,7 +657,7 @@ function renderStats() {
   }
 
   const gf = (gradeFilter && gradeFilter.size > 0) ? ` / 出題:${[...gradeFilter].join(",")}` : "";
-  statsBox.textContent = `現在評価：A ${A} / B ${B} / C ${C} / 未設定 ${U}${gf}`;
+  statsBox.textContent = `現在評価：A ${A} / B ${B} / C ${C} / 未設定 ${U}${gf}${activeSearch ? ` / 検索「${activeSearch}」：${deck.length}件` : ""}`;
 }
 
 // ====== 進捗保存・復元（今回追加） ======
@@ -603,6 +685,10 @@ function saveStateNow() {
     gradeChecks: { A: !!fA.checked, B: !!fB.checked, C: !!fC.checked },
     gradeFilterMode: !!gradeFilterMode, // 「評価で出題」を押して適用中か
 
+    // 検索中の文字列と、検索前の通常出題状態
+    activeSearch,
+    beforeSearchIds: beforeSearch ? beforeSearch.deck.map(c => c.id) : null,
+    beforeSearchIdx: beforeSearch ? beforeSearch.idx : null,
     // デッキ順・現在位置
     deckIds: Array.isArray(deck) ? deck.map(c => c.id) : [],
     idx: Number.isFinite(idx) ? idx : 0
@@ -663,6 +749,18 @@ function restoreFromState(s) {
     base = base.filter(c => gradeFilter.has(c.grade) || !c.grade);
   }
   deck = base;
+  activeSearch = typeof s.activeSearch === "string" ? s.activeSearch : "";
+  beforeSearch = null;
+  if (activeSearch) {
+    const normalDeck = [...base];
+    const ids = Array.isArray(s.beforeSearchIds) ? s.beforeSearchIds : [];
+    const byId = new Map(normalDeck.map(c => [c.id, c]));
+    const ordered = ids.map(id => byId.get(id)).filter(Boolean);
+    for (const c of normalDeck) if (!ordered.includes(c)) ordered.push(c);
+    beforeSearch = { deck: ordered, idx: Math.max(0, Math.min(s.beforeSearchIdx || 0, Math.max(ordered.length - 1, 0))), showBack: false };
+    deck = findMatchingCards(activeSearch);
+    searchText.value = activeSearch;
+  }
 
   // デッキ順の復元（保存されたdeckIds順に並び替え）
   const deckIds = Array.isArray(s.deckIds) ? s.deckIds : [];

@@ -70,6 +70,7 @@
           <button id="btnC" class="btn bad">C 全くダメ</button>
         </div>
         <div class="row commentButtonRow">
+          <button id="btnSearch" class="btn ghost" type="button">検索</button>
           <button id="btnComment" class="btn ghost" type="button">コメント</button>
         </div>
       </div>
@@ -91,6 +92,18 @@
       <button id="btnCancelComment" class="btn ghost" type="button">キャンセル</button>
       <button id="btnSaveComment" class="btn" type="button">保存</button>
     </div>
+  </dialog>
+  <dialog id="searchDialog" class="commentDialog" aria-labelledby="searchDialogTitle">
+    <h3 id="searchDialogTitle">問題文・回答文を検索</h3>
+    <form id="searchForm">
+      <input id="searchText" type="search" placeholder="検索する文字列" autocomplete="off" aria-label="検索する文字列" />
+      <p id="searchHint" class="searchHint">大文字・小文字を区別せず、部分一致で検索します。</p>
+      <div class="row commentDialogActions">
+        <button id="btnClearSearch" class="btn ghost" type="button">検索解除</button>
+        <button id="btnCancelSearch" class="btn ghost" type="button">キャンセル</button>
+        <button class="btn" type="submit">検索実行</button>
+      </div>
+    </form>
   </dialog>
   <!-- SheetJS（XLSX読み込み用） -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
